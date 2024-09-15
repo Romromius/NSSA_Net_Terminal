@@ -1,6 +1,6 @@
 {"help": ["Displays this message.", "<command>: define command to get help by."],
   "info": ["Displays system information."],
   "update": ["Command for updating this program.",
-    "-check: flag for checking for updates.",
-    "-install: flag for installing updates."],
+  "-check: flag for checking for updates.",
+  "-install: flag for installing updates."],
   "exit": ["Closes the program."]}
