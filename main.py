@@ -118,7 +118,7 @@ class Commands:
                 self.has_updates = check_for_updates()
                 if self.has_updates:
                     my_print('New version is available!')
-                    pygame.mixer.Sound('resources/audio/Attention.ogg').play(3)
+                    # pygame.mixer.Sound('resources/audio/Attention.ogg').play()
                 else:
                     my_print('No updates found.')
             if 'install' in args:
