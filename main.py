@@ -26,9 +26,12 @@ NetStart = pygame.mixer.Sound('resources/audio/NetInitiated.ogg')
 NetComplete = pygame.mixer.Sound('resources/audio/NetComplete.ogg')
 NetError = pygame.mixer.Sound('resources/audio/NetError.ogg')
 
+with open('settings.json', 'r') as f:
+    settings = json.load(f)
+
 
 def my_print(text: str, sep=' ', end='\n', duration: int | float = 1):
-    modifier = 1
+    modifier = settings["speed_modifier"]
     text += end
     last_was_nl = False
     for i in text:
