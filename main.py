@@ -47,7 +47,6 @@ def my_print(text: str, sep=' ', end='\n', duration: int | float = 1):
         time.sleep(duration * modifier / len(text))
 
 
-
 def clear_screen():
     if 'linux' in sys.platform:
         os.system('clear')
@@ -77,7 +76,7 @@ def pull_updates():
         subprocess.run(["git", "pull"], check=True)
     except subprocess.CalledProcessError:
         NetError.play()
-        my_print('Error while updating.')
+        my_print(lang['update_error'])
         return
     NetComplete.play()
 
@@ -91,21 +90,19 @@ class Commands:
             help_info: dict = json.load(f)
             if command:
                 if command not in help_info:
-                    my_print('There is no info about this command.')
+                    my_print('')
                     return
                 my_print(command + ':')
                 for i in help_info[command]:
                     my_print('    ' + i)
             else:
-                my_print('Type "help <command>" to get help for command.')
-                my_print('Arguments in "<>" are meant to be filled with some value.')
-                my_print('Arguments that begins with "-" are flags to be just wrote as is.')
-                my_print('Available commands:', duration=.5)
+                my_print(lang['help_guide'])
+                my_print(lang['help_available'], duration=.5)
                 for i in help_info:
                     my_print(' - ' + i, duration=.3)
 
     def info(self):
-        my_print('Displaying system information...')
+        my_print('')
         my_print('Platform', end='', duration=.5)
         my_print('. ' * 5, end='', duration=3)
         my_print(sys.platform, duration=2)
@@ -137,14 +134,61 @@ class Commands:
             my_print('Please enter arguments.')
 
 
+class Language:
+    def __init__(self):
+        self.language = settings['language']
+        my_print(f'Loading language "{self.language}"')
+
+        self.languages: dict[str, dict] = {'english': self._dictify('''
+greet=Hello, NSSA! Glory to the Watermelon;
+lang_load_success=Language loaded successfully!;
+shutdown=Exiting...;
+update_error=Error while updating.;
+unknown_command=Unknown command or wrong arguments.;
+;
+help_no_info=There is no info about this command.;
+help_guide=Type "help <command>" to get help for command.
+Arguments in "<>" are meant to be filled with some value.
+Arguments that begins with "-" are flags to be just wrote as is.;
+help_available=Available commands:''')}
+
+        if not self.languages.get(self.language, False):
+            self.language = 'english'
+            pygame.mixer.Sound('resources/audio/Error.ogg').play()
+            my_print('Failed to load this language!')
+        else:
+            my_print(self.__repr__()['lang_load_success'])
+
+
+    def _dictify(self, string: str) -> dict:
+        result = {}
+        for i in string.split(';'):
+            try:
+                result[i.split('=')[0][1:]] = i.split('=')[1]
+            except IndexError:
+                continue
+        return result
+
+    def __repr__(self) -> dict:
+        return self.languages[self.language]
+
+    def __getitem__(self, item):
+        string = self.languages[self.language].get(item, False)
+        if string:
+            return string
+        else:
+            pygame.mixer.Sound('resources/audio/Trouble.ogg').play()
+            return f'LOCALISATION ERROR: {item} NOT FOUND'
+
+
 background_thread = threading.Thread(target=keyboard_sounds.main, daemon=True)
 
 if __name__ == "__main__":
     background_thread.start()
     clear_screen()
     running = True
-    my_print('Hello, NSSA!')
-    my_print('Glory to the Watermelon!')
+    lang = Language()
+    my_print(lang['greet'])
     client = Commands()
     while running:
         user_input = input('> ').split(' ')
@@ -160,11 +204,11 @@ if __name__ == "__main__":
             case ['update', *args]:
                 client.update(*args)
             case ['exit']:
-                my_print('Shutting down...')
+                my_print(lang['shutdown'])
                 time.sleep(1)
                 quit()
             case ['']:
                 pass
             case _:
-                my_print('Unknown command or wrong arguments.')
+                my_print(lang['unknown_command'])
                 my_print(user_input[0] + ' <-')
