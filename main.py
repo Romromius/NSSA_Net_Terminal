@@ -1,3 +1,5 @@
+import datetime
+
 while True:
     try:
         import json
@@ -8,6 +10,7 @@ while True:
         import pygame
         import keyboard_sounds
         import threading
+        import numpy as np
         break
     except ModuleNotFoundError:
         print('There\'s a problem with libraries.')
@@ -45,6 +48,32 @@ def my_print(text: str, sep=' ', end='\n', duration: int | float = 1):
             Output.play()
         print(i, end='', flush=True)
         time.sleep(duration * modifier / len(text))
+
+
+def print_number(number: int | float, end='\n', duration: int | float = 1):
+    sound = pygame.mixer.Sound('resources/audio/Effect_Tick.ogg')
+    end_sound = pygame.mixer.Sound('resources/audio/OutputNewline.ogg')
+    if number > 100:
+        my_range = 100
+        diff = number - 100
+        arang = np.arange(100)
+    else:
+        my_range = number
+        diff = 0
+        arang = np.arange(number)
+
+    for i in range(my_range):
+        to_print = int(number / my_range * (i + 1))
+        print(to_print, end='', flush=True)
+        print('\b' * len(str(to_print)), end='', flush=True)
+        lam = .1
+        C = 1 / np.sum(np.exp(lam * arang))
+        sleep_time = duration / 3 * C * np.exp(lam * i + 1)
+        if not pygame.mixer.get_busy():
+            sound.play()
+        time.sleep(sleep_time)
+    end_sound.play()
+    print(end=end)
 
 
 def clear_screen():
@@ -133,6 +162,10 @@ class Commands:
         else:
             my_print('Please enter arguments.')
 
+    def year(self):
+        my_print('Current year is: ', end='')
+        print_number(datetime.datetime.now().year + 12700, duration=5)
+
 
 class Language:
     def __init__(self):
@@ -207,6 +240,8 @@ if __name__ == "__main__":
                 my_print(lang['shutdown'])
                 time.sleep(1)
                 quit()
+            case ['year']:
+                client.year()
             case ['']:
                 pass
             case _:

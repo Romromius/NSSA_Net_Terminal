@@ -1,0 +1,15 @@
+{
+  "blackout":{
+    "password": "1234",
+    "content": {
+      "english": {
+      "no_password": "The war for freedom we won. After the inhabitants rose up against their oppressors, attempts to crush the resistance failed. As a result, our planet gained its long-awaited independence, and the influence of outside forces ceased.",
+      "has_password": "The title of the result of the war on Tau-Ceti-4. After the people of Tau-Ceti-4 rebelled against the Syndicate of Man, Rubicon tried to suppress it, but soon retreated. Tau-Ceti-4 then became independent of the Syndicate of Man, and the presence of Rubicon and Titania waned."
+      },
+      "russian": {
+        "no_password": "Война за свободу, которую мы выиграли. После того как жители восстали против своих угнетателей, попытки подавить сопротивление провалились. В результате наша планета обрела долгожданную независимость, и влияние внешних сил прекратилось.",
+        "has_password": "Название результата войны на Тау-Кита-4. После того как жители Тау-Кита-4 восстали против Синдиката Человечества, Рубикон пытался подавить его, но вскоре отступил. После этого Тау-Кита-4 стала независимой от Синдиката Человечества, а присутствие Рубикона и Титании сошло на нет."
+      }
+    }
+  }
+}
