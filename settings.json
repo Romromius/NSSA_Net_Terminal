@@ -1,4 +1,5 @@
 {
-  "speed_modifier": 0.5,
-  "language": "english"
+  "speed_modifier": 0.2,
+  "language": "enga",
+  "_comment": "available languages: enga, russovskoy, lingvarbuz"
 }

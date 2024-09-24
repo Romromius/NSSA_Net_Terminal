@@ -1,4 +1,5 @@
 import datetime
+from datetime import timedelta
 
 while True:
     try:
@@ -12,8 +13,8 @@ while True:
         import threading
         import numpy as np
         break
-    except ModuleNotFoundError:
-        print('There\'s a problem with libraries.')
+    except ModuleNotFoundError as err:
+        print(f'There\'s a problem with libraries: {err}')
         import os
         os.system('fix_dependencies.bat')
 
@@ -53,10 +54,10 @@ def my_print(text: str, sep=' ', end='\n', duration: int | float = 1):
 def print_number(number: int | float, end='\n', duration: int | float = 1):
     sound = pygame.mixer.Sound('resources/audio/Effect_Tick.ogg')
     end_sound = pygame.mixer.Sound('resources/audio/OutputNewline.ogg')
-    if number > 100:
-        my_range = 100
-        diff = number - 100
-        arang = np.arange(100)
+    if number > 700:
+        my_range = 700
+        diff = number - 700
+        arang = np.arange(700)
     else:
         my_range = number
         diff = 0
@@ -78,9 +79,12 @@ def print_number(number: int | float, end='\n', duration: int | float = 1):
 
 def clear_screen():
     if 'linux' in sys.platform:
-        os.system('clear')
+        my_print('Linux is not allowed. only windows.')
+        quit()
+        # os.system('clear')
     elif 'win' in sys.platform:
         os.system('cls')
+        os.system('color 60')
 
 
 def check_for_updates():
@@ -110,6 +114,72 @@ def pull_updates():
     NetComplete.play()
 
 
+class UniversalTimeScale:
+    def __init__(self):
+        # Store time as seconds since year 0
+        self.seconds = 0
+
+    # Constants for Earth and Mars time calculations
+    SECONDS_IN_DAY = 24 * 60 * 60
+    SECONDS_IN_COMMON_YEAR = 365 * SECONDS_IN_DAY
+    SECONDS_IN_LEAP_YEAR = 366 * SECONDS_IN_DAY
+    SECONDS_IN_MARS_YEAR = 687 * SECONDS_IN_DAY  # Mars year length in seconds
+
+    # Check if a given year is a leap year (for Earth)
+    def is_leap_year(self, year):
+        return (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0)
+
+    # Setter to set time by Earth Time Scale (ETS)
+    def set_time_by_ets(self, year, add_day_seconds = False):
+        total_seconds = 0
+        for current_year in range(0, int(year)):
+            KeypressDelete.play()
+            print(total_seconds, end='\r', flush=True)
+            if self.is_leap_year(current_year):
+                total_seconds += UniversalTimeScale.SECONDS_IN_LEAP_YEAR
+            else:
+                total_seconds += UniversalTimeScale.SECONDS_IN_COMMON_YEAR
+        if add_day_seconds:
+            b = datetime.datetime.now()
+            b = b.replace(year=1)
+            a = 0
+            a += b.month * 30 * 24 * 60 * 60
+            a += b.day * 24 * 60 * 60
+            a += b.hour * 60 * 60
+            a += b.minute * 60
+            a += b.second
+            total_seconds += a
+        self.seconds = total_seconds + (year - int(year)) * (UniversalTimeScale.SECONDS_IN_LEAP_YEAR if self.is_leap_year(int(year)) else UniversalTimeScale.SECONDS_IN_COMMON_YEAR)
+
+    # Setter to set time by Martian Time Scale (MTS)
+    def set_time_by_mts(self, years):
+        self.seconds = years * UniversalTimeScale.SECONDS_IN_MARS_YEAR
+
+    # Getter to get the number of years in Earth Time Scale (ETS), accounting for leap years
+    def get_ets_year(self):
+        total_seconds = self.seconds
+        current_year = 0
+
+        while total_seconds > (UniversalTimeScale.SECONDS_IN_LEAP_YEAR if self.is_leap_year(current_year) else UniversalTimeScale.SECONDS_IN_COMMON_YEAR):
+            if self.is_leap_year(current_year):
+                total_seconds -= UniversalTimeScale.SECONDS_IN_LEAP_YEAR
+            else:
+                total_seconds -= UniversalTimeScale.SECONDS_IN_COMMON_YEAR
+            current_year += 1
+
+        # Calculate the fractional part of the current year
+        if self.is_leap_year(current_year):
+            fraction_of_year = total_seconds / UniversalTimeScale.SECONDS_IN_LEAP_YEAR
+        else:
+            fraction_of_year = total_seconds / UniversalTimeScale.SECONDS_IN_COMMON_YEAR
+
+        return current_year + fraction_of_year
+
+    # Getter to get the number of years in Martian Time Scale (MTS)
+    def get_mts_year(self):
+        return self.seconds / UniversalTimeScale.SECONDS_IN_MARS_YEAR
+
+
 class Commands:
     def __init__(self):
         self.has_updates = None
@@ -132,39 +202,48 @@ class Commands:
 
     def info(self):
         my_print('')
-        my_print('Platform', end='', duration=.5)
+        my_print(lang['info_platform'], end='', duration=.5)
         my_print('. ' * 5, end='', duration=3)
         my_print(sys.platform, duration=2)
-        my_print('Py version', end='', duration=.5)
+        my_print(lang['info_py_version'], end='', duration=.5)
         my_print('. ' * 5, end='', duration=3)
         my_print(sys.version, duration=2)
-        my_print('Copyrights:\n')
+        my_print(f'{lang['info_copyrights']}\n')
         my_print(sys.copyright, duration=5)
 
     def update(self, *args: list[str]):
         if args:
-            if 'check' in args:
+            if '-check' in args:
                 self.has_updates = check_for_updates()
                 if self.has_updates:
-                    my_print('New version is available!')
+                    my_print(lang['update_new_ver_available'])
                     # pygame.mixer.Sound('resources/audio/Attention.ogg').play()
                 else:
-                    my_print('No updates found.')
-            if 'install' in args:
+                    my_print(lang['update_not_found'])
+            if '-install' in args:
                 if self.has_updates is not None:
                     if self.has_updates:
                         pull_updates()
                     else:
-                        my_print('There is no updates to install.')
-                        my_print('If you sure there are, try checking for updates again.')
+                        my_print(lang['update_not_remember'])
                 else:
-                    my_print('Please first check for updates.')
+                    my_print(lang['update_ask_to_check'])
         else:
-            my_print('Please enter arguments.')
+            my_print(lang['update_ask_argument'])
 
-    def year(self):
-        my_print('Current year is: ', end='')
-        print_number(datetime.datetime.now().year + 12700, duration=5)
+    def year(self, *args: list[str]):
+        year = UniversalTimeScale()
+        my_print('Calculating...')
+        year.set_time_by_ets(datetime.datetime.now().year + 12700, add_day_seconds=True)
+        if not args or True:
+            my_print(lang['year_uts'], end='')
+            print_number(year.seconds, duration=1)
+        if '-ets' in args:
+            my_print(lang['year_ets'], end='')
+            print_number(year.get_ets_year(), duration=3)
+        if '-mts' in args:
+            my_print(lang['year_mts'], end='')
+            print_number(year.get_mts_year(), duration=3)
 
 
 class Language:
@@ -172,18 +251,33 @@ class Language:
         self.language = settings['language']
         my_print(f'Loading language "{self.language}"')
 
-        self.languages: dict[str, dict] = {'english': self._dictify('''
+        self.languages: dict[str, dict] = {'enga': self._dictify('''
 greet=Hello, NSSA! Glory to the Watermelon;
 lang_load_success=Language loaded successfully!;
 shutdown=Exiting...;
-update_error=Error while updating.;
-unknown_command=Unknown command or wrong arguments.;
 ;
 help_no_info=There is no info about this command.;
 help_guide=Type "help <command>" to get help for command.
 Arguments in "<>" are meant to be filled with some value.
 Arguments that begins with "-" are flags to be just wrote as is.;
-help_available=Available commands:''')}
+help_available=Available commands:;
+;
+info_platform=Platform;
+info_py_version=Py version;
+info_copyrights=Copyrights:;
+;
+update_new_ver_available=New version is available!;
+update_not_found=No updates found.;
+update_not_remember=There is no updates to install.
+If you sure there are, try checking for updates again.;
+update_ask_to_check=Please first check for updates.;
+update_ask_argument=Please enter arguments.;
+update_error=Error while updating.;
+unknown_command=Unknown command or wrong arguments.;
+;
+year_uts=Current UTS value: ;
+year_ets=Current ETS year is: ;
+year_mts=Current MTS year is: ''')}
 
         if not self.languages.get(self.language, False):
             self.language = 'english'
@@ -240,8 +334,8 @@ if __name__ == "__main__":
                 my_print(lang['shutdown'])
                 time.sleep(1)
                 quit()
-            case ['year']:
-                client.year()
+            case ['year', *args]:
+                client.year(*args)
             case ['']:
                 pass
             case _:

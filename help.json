@@ -1,6 +1,12 @@
-{"help": ["Displays this message.", "<command>: define command to get help by."],
+{"help": ["Displays this message.",
+  "<command>: define command to get help by."],
   "info": ["Displays system information."],
   "update": ["Command for updating this program.",
   "-check: flag for checking for updates.",
   "-install: flag for installing updates."],
-  "exit": ["Closes the program."]}
+  "year": ["Displays current year in various time scales.",
+  "-ets: will display year in ETS.",
+  "-mts: will display year in MTS.",
+  "If there are no flags stated, shows UTS value"],
+  "exit": ["Closes the program."]
+}
