@@ -252,9 +252,10 @@ class Language:
         my_print(f'Loading language "{self.language}"')
 
         self.languages: dict[str, dict] = {'enga': self._dictify('''
-greet=Hello, NSSA! Glory to the Watermelon;
+greet=Hello, NSSA! Glory to the Watermelon!;
 lang_load_success=Language loaded successfully!;
 shutdown=Exiting...;
+unknown_command=Unknown command or wrong arguments.;
 ;
 help_no_info=There is no info about this command.;
 help_guide=Type "help <command>" to get help for command.
@@ -263,7 +264,7 @@ Arguments that begins with "-" are flags to be just wrote as is.;
 help_available=Available commands:;
 ;
 info_platform=Platform;
-info_py_version=Py version;
+info_py_version=Engine version;
 info_copyrights=Copyrights:;
 ;
 update_new_ver_available=New version is available!;
@@ -273,11 +274,39 @@ If you sure there are, try checking for updates again.;
 update_ask_to_check=Please first check for updates.;
 update_ask_argument=Please enter arguments.;
 update_error=Error while updating.;
-unknown_command=Unknown command or wrong arguments.;
 ;
 year_uts=Current UTS value: ;
 year_ets=Current ETS year is: ;
-year_mts=Current MTS year is: ''')}
+year_mts=Current MTS year is: '''),
+
+'russovskoy': self._dictify('''
+greet=Привет, НССА! Слава Арбузу!;
+lang_load_success=Язык успешно загружен!;
+shutdown=Завершение сеанса...;
+unknown_command=Неизвестная команда или неверные аргументы.;
+;
+help_no_info=О данной команде нет информации.;
+help_guide=Используйте "help <command>" чтобы получить помощь по конкретной команде.
+Аргументы, заключенные в "<>" должны быть заменены каким-то значением.
+Аргументы, начинающиеся с "-" являются флагами и должны быть указаны как есть.;
+help_available=Доступные команды:;
+;
+info_platform=Платформа;
+info_py_version=Версия движка;
+info_copyrights=Правовая информация:;
+;
+update_new_ver_available=Доступна новая версия!;
+update_not_found=Обновления не найдены.;
+update_not_remember=Нет обновлений, доступных для установки.
+Если вы уверены, что есть, попробуйте проверить наличие обновлений.;
+update_ask_to_check=Пожалуйста, сначала проверьте наличие обновлений.;
+update_ask_argument=Укажите аргументы.;
+update_error=Во время обновления произошла ошибка.;
+;
+year_uts=Значение UTS: ;
+year_ets=Год по ETS: ;
+year_mts=Год по MTS: ''')
+                                           }
 
         if not self.languages.get(self.language, False):
             self.language = 'english'
