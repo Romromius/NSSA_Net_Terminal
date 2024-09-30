@@ -77,14 +77,14 @@ def print_number(number: int | float, end='\n', duration: int | float = 1):
     print(end=end)
 
 
-def clear_screen():
+def clear_screen(color=''):
     if 'linux' in sys.platform:
         my_print('Linux is not allowed. only windows.')
         quit()
         # os.system('clear')
     elif 'win' in sys.platform:
         os.system('cls')
-        os.system('color 60')
+        os.system(f'color {color}')
 
 
 def check_for_updates():
@@ -341,7 +341,7 @@ background_thread = threading.Thread(target=keyboard_sounds.main, daemon=True)
 
 if __name__ == "__main__":
     background_thread.start()
-    clear_screen()
+    clear_screen('60')
     running = True
     lang = Language()
     my_print(lang['greet'])
