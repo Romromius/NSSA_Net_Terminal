@@ -36,8 +36,11 @@ with open('settings.json', 'r') as f:
     settings = json.load(f)
 
 
-def my_print(text: str, sep=' ', end='\n', duration: int | float = 1):
+old_print = print
+
+def print(text: str, sep=' ', end='\n', duration: int | float = 1):
     modifier = settings["speed_modifier"]
+    text = str(text)
     text += end
     last_was_nl = False
     for i in text:
@@ -49,7 +52,7 @@ def my_print(text: str, sep=' ', end='\n', duration: int | float = 1):
             last_was_nl = False
         if i != ' ':
             Output.play()
-        print(i, end='', flush=True)
+        old_print(i, end='', flush=True)
         time.sleep(duration * modifier / len(text))
 
 
@@ -81,7 +84,7 @@ def print_number(number: int | float, end='\n', duration: int | float = 1):
 
 def clear_screen():
     if 'linux' in sys.platform:
-        my_print('Linux is not allowed. only windows.')
+        print('Linux is not allowed. only windows.')
         quit()
         # os.system('clear')
     elif 'win' in sys.platform:
@@ -111,7 +114,7 @@ def pull_updates():
         subprocess.run(["git", "pull"], check=True)
     except subprocess.CalledProcessError:
         NetError.play()
-        my_print(lang['update_error'])
+        print(lang['update_error'])
         return
     NetComplete.play()
 
@@ -191,86 +194,95 @@ class Commands:
             help_info: dict = json.load(f)
             if command:
                 if command not in help_info:
-                    my_print('')
+                    print('')
                     return
-                my_print(command + ':')
+                print(command + ':')
                 for i in help_info[command]:
-                    my_print('    ' + i)
+                    print('    ' + i)
             else:
-                my_print(lang['help_guide'])
-                my_print(lang['help_available'], duration=.5)
+                print(lang['help_guide'])
+                print(lang['help_available'], duration=.5)
                 for i in help_info:
-                    my_print(' - ' + i, duration=.3)
+                    print(' - ' + i, duration=.3)
 
     def info(self):
-        my_print('')
-        my_print(lang['info_platform'], end='', duration=.5)
-        my_print('. ' * 5, end='', duration=3)
-        my_print(sys.platform, duration=2)
-        my_print(lang['info_py_version'], end='', duration=.5)
-        my_print('. ' * 5, end='', duration=3)
-        my_print(sys.version, duration=2)
-        my_print(f'{lang['info_copyrights']}\n')
-        my_print(sys.copyright, duration=5)
+        print('')
+        print(lang['info_platform'], end='', duration=.5)
+        print('. ' * 5, end='', duration=3)
+        print(sys.platform, duration=2)
+        print(lang['info_py_version'], end='', duration=.5)
+        print('. ' * 5, end='', duration=3)
+        print(sys.version, duration=2)
+        print(f'{lang['info_copyrights']}\n')
+        print(sys.copyright, duration=5)
 
     def update(self, *args: list[str]):
         if args:
             if '-check' in args:
                 self.has_updates = check_for_updates()
                 if self.has_updates:
-                    my_print(lang['update_new_ver_available'])
+                    print(lang['update_new_ver_available'])
                     # pygame.mixer.Sound('resources/audio/Attention.ogg').play()
                 else:
-                    my_print(lang['update_not_found'])
+                    print(lang['update_not_found'])
             if '-install' in args:
                 if self.has_updates is not None:
                     if self.has_updates:
                         pull_updates()
                     else:
-                        my_print(lang['update_not_remember'])
+                        print(lang['update_not_remember'])
                 else:
-                    my_print(lang['update_ask_to_check'])
+                    print(lang['update_ask_to_check'])
         else:
-            my_print(lang['update_ask_argument'])
+            print(lang['update_ask_argument'])
 
     def year(self, *args: list[str]):
         year = UniversalTimeScale()
-        my_print('Calculating...')
+        print('Calculating...')
         year.set_time_by_ets(datetime.datetime.now().year + 12700, add_day_seconds=True)
         if not args or True:
-            my_print(lang['year_uts'], end='')
+            print(lang['year_uts'], end='')
             print_number(year.seconds, duration=1)
         if '-ets' in args:
-            my_print(lang['year_ets'], end='')
+            print(lang['year_ets'], end='')
             print_number(year.get_ets_year(), duration=3)
         if '-mts' in args:
-            my_print(lang['year_mts'], end='')
+            print(lang['year_mts'], end='')
             print_number(year.get_mts_year(), duration=3)
 
 
 class DBProfiler:
     def __init__(self):
         self.running = True
-        # TODO: clear_screen()
+        # TODO: clear_screen('40')
         while self.running:
             user_input = input('? ')
             match user_input:
                 case 'help':
-                    my_print('Request example: <key> <password>\n Password isn\'t necessary.')
-                case ['exit']:
+                    print('Request example: <key> <password>\n Password isn\'t necessary.')
+                case 'exit':
                     self.running = False
                 case ['']:
                     pass
                 case _:
                     NetStart.play()
-                    # TODO: ДОДЕЛАТЬ
+                    try:
+                        response = requests.get('http://127.0.0.1:5000/',
+                                     {'key': user_input, 'language': 'russian'})
+                    except requests.exceptions.ConnectionError:
+                        NetError.play()
+                        print('CAN NOT FETCH')
+                        continue
+                    NetComplete.play()
+                    print(f'{user_input}:\n{response.json()["response"]}',
+                          duration=len(response.json()["response"])/70)
         clear_screen()
 
 
 class Language:
     def __init__(self):
         self.language = settings['language']
-        my_print(f'Loading language "{self.language}"')
+        print(f'Loading language "{self.language}"')
 
         self.languages: dict[str, dict] = {'enga': self._dictify('''
 greet=Hello, NSSA! Glory to the Watermelon!;
@@ -332,9 +344,9 @@ year_mts=Год по MTS: ''')
         if not self.languages.get(self.language, False):
             self.language = 'english'
             pygame.mixer.Sound('resources/audio/Error.ogg').play()
-            my_print('Failed to load this language!')
+            print('Failed to load this language!')
         else:
-            my_print(self.__repr__()['lang_load_success'])
+            print(self.__repr__()['lang_load_success'])
 
 
     def _dictify(self, string: str) -> dict:
@@ -365,8 +377,9 @@ if __name__ == "__main__":
     clear_screen()
     running = True
     lang = Language()
-    my_print(lang['greet'])
+    print(lang['greet'])
     client = Commands()
+    DBProfiler()
     while running:
         user_input = input('> ').split(' ')
         match user_input:
@@ -381,13 +394,15 @@ if __name__ == "__main__":
             case ['update', *args]:
                 client.update(*args)
             case ['exit']:
-                my_print(lang['shutdown'])
+                print(lang['shutdown'])
                 time.sleep(1)
                 quit()
             case ['year', *args]:
                 client.year(*args)
+            case ['profiler']:
+                DBProfiler()
             case ['']:
                 pass
             case _:
-                my_print(lang['unknown_command'])
-                my_print(user_input[0] + ' <-')
+                print(lang['unknown_command'])
+                print(user_input[0] + ' <-')
