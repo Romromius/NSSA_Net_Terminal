@@ -1,5 +1,4 @@
-import datetime
-from datetime import timedelta
+
 
 while True:
     try:
@@ -12,6 +11,9 @@ while True:
         import keyboard_sounds
         import threading
         import numpy as np
+        import datetime
+        from datetime import timedelta
+        import requests
         break
     except ModuleNotFoundError as err:
         print(f'There\'s a problem with libraries: {err}')
@@ -244,6 +246,25 @@ class Commands:
         if '-mts' in args:
             my_print(lang['year_mts'], end='')
             print_number(year.get_mts_year(), duration=3)
+
+
+class DBProfiler:
+    def __init__(self):
+        self.running = True
+        # TODO: clear_screen()
+        while self.running:
+            user_input = input('? ')
+            match user_input:
+                case 'help':
+                    my_print('Request example: <key> <password>\n Password isn\'t necessary.')
+                case ['exit']:
+                    self.running = False
+                case ['']:
+                    pass
+                case _:
+                    NetStart.play()
+                    # TODO: ДОДЕЛАТЬ
+        clear_screen()
 
 
 class Language:
