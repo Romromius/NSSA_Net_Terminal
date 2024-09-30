@@ -268,7 +268,7 @@ class DBProfiler:
                     NetStart.play()
                     try:
                         response = requests.get('http://127.0.0.1:5000/',
-                                     {'key': user_input, 'language': 'russian'})
+                                     {'key': user_input, 'language': settings['language']})
                     except requests.exceptions.ConnectionError:
                         NetError.play()
                         print('CAN NOT FETCH')
@@ -379,7 +379,6 @@ if __name__ == "__main__":
     lang = Language()
     print(lang['greet'])
     client = Commands()
-    DBProfiler()
     while running:
         user_input = input('> ').split(' ')
         match user_input:
