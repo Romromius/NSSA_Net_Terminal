@@ -82,7 +82,7 @@ def print_number(number: int | float, end='\n', duration: int | float = 1):
     print(end=end)
 
 
-def clear_screen(color=''):
+def clear_screen(color='60'):
     if 'linux' in sys.platform:
         print('Linux is not allowed. only windows.')
         quit()
@@ -254,28 +254,37 @@ class Commands:
 class DBProfiler:
     def __init__(self):
         self.running = True
-        # TODO: clear_screen('40')
+        clear_screen('40')
         while self.running:
-            user_input = input('? ')
+            user_input = input('? ').split(' ')
             match user_input:
-                case 'help':
+                case ['help']:
                     print('Request example: <key> <password>\n Password isn\'t necessary.')
-                case 'exit':
+                case ['exit']:
                     self.running = False
                 case ['']:
                     pass
                 case _:
+                    key = user_input[0]
+                    password = user_input[1] if len(user_input) > 1 else None
                     NetStart.play()
                     try:
-                        response = requests.get('http://127.0.0.1:5000/',
-                                     {'key': user_input, 'language': settings['language']})
+                        if password:
+                            response = requests.get('http://127.0.0.1:5000/',
+                                                    {'key': key,
+                                                     'language': settings['language'],
+                                                     'password': password})
+                        else:
+                            response = requests.get('http://127.0.0.1:5000/get_knowledge',
+                                                    {'key': key,
+                                                     'language': settings['language']})
                     except requests.exceptions.ConnectionError:
                         NetError.play()
                         print('CAN NOT FETCH')
                         continue
                     NetComplete.play()
-                    print(f'{user_input}:\n{response.json()["response"]}',
-                          duration=len(response.json()["response"])/70)
+                    print(f'{key}:\n{response.json()["response"]}',
+                          duration=len(response.json()["response"])/70 if response.json()["response"] else 3)
         clear_screen()
 
 
@@ -374,7 +383,7 @@ background_thread = threading.Thread(target=keyboard_sounds.main, daemon=True)
 
 if __name__ == "__main__":
     background_thread.start()
-    clear_screen('60')
+    clear_screen()
     running = True
     lang = Language()
     print(lang['greet'])
@@ -395,7 +404,7 @@ if __name__ == "__main__":
             case ['exit']:
                 print(lang['shutdown'])
                 time.sleep(1)
-                quit()
+                running = False
             case ['year', *args]:
                 client.year(*args)
             case ['profiler']:
@@ -405,3 +414,4 @@ if __name__ == "__main__":
             case _:
                 print(lang['unknown_command'])
                 print(user_input[0] + ' <-')
+    clear_screen('F0')
