@@ -1,5 +1,3 @@
-
-
 while True:
     try:
         import json
@@ -14,109 +12,41 @@ while True:
         import datetime
         from datetime import timedelta
         import requests
+
+        from libraries import *
+        from apps import *
+
         break
     except ModuleNotFoundError as err:
         print(f'There\'s a problem with libraries: {err}')
         import os
-        os.system('fix_dependencies.bat')
-
-
-pygame.init()
-KeypressDelete = pygame.mixer.Sound('resources/audio/KeypressDelete.ogg')
-KeypressStandard = pygame.mixer.Sound('resources/audio/KeypressStandard.ogg')
-
-Output = pygame.mixer.Sound('resources/audio/Output.ogg')
-Newline = pygame.mixer.Sound('resources/audio/OutputNewline.ogg')
-
-NetStart = pygame.mixer.Sound('resources/audio/NetInitiated.ogg')
-NetComplete = pygame.mixer.Sound('resources/audio/NetComplete.ogg')
-NetError = pygame.mixer.Sound('resources/audio/NetError.ogg')
-
-with open('settings.json', 'r') as f:
-    settings = json.load(f)
-
-
-old_print = print
-
-def print(text: str, sep=' ', end='\n', duration: int | float = 1):
-    modifier = settings["speed_modifier"]
-    text = str(text)
-    text += end
-    last_was_nl = False
-    for i in text:
-        if i == '\n':
-            if not last_was_nl:
-                Newline.play()
-            last_was_nl = True
-        else:
-            last_was_nl = False
-        if i != ' ':
-            Output.play()
-        old_print(i, end='', flush=True)
-        time.sleep(duration * modifier / len(text))
-
-
-def print_number(number: int | float, end='\n', duration: int | float = 1):
-    sound = pygame.mixer.Sound('resources/audio/Effect_Tick.ogg')
-    end_sound = pygame.mixer.Sound('resources/audio/OutputNewline.ogg')
-    if number > 700:
-        my_range = 700
-        diff = number - 700
-        arang = np.arange(700)
-    else:
-        my_range = number
-        diff = 0
-        arang = np.arange(number)
-
-    for i in range(my_range):
-        to_print = int(number / my_range * (i + 1))
-        print(to_print, end='', flush=True)
-        print('\b' * len(str(to_print)), end='', flush=True)
-        lam = .1
-        C = 1 / np.sum(np.exp(lam * arang))
-        sleep_time = duration / 3 * C * np.exp(lam * i + 1)
-        if not pygame.mixer.get_busy():
-            sound.play()
-        time.sleep(sleep_time)
-    end_sound.play()
-    print(end=end)
-
-
-def clear_screen(color='60'):
-    if 'linux' in sys.platform:
-        print('Linux is not allowed. only windows.')
-        quit()
-        # os.system('clear')
-    elif 'win' in sys.platform:
-        os.system('cls')
-        os.system(f'color {color}')
-
+        os.system('install_requirements.bat')
 
 def check_for_updates():
-    NetStart.play()
+    Sounds.NetStart.play()
 
     try:
         _ = subprocess.run(["git", "fetch"], check=True)
         status = subprocess.run(["git", "status", "-uno"], capture_output=True, text=True)
     except subprocess.CalledProcessError:
-        NetError.play()
+        Sounds.NetError.play()
         return False
 
-    NetComplete.play()
+    Sounds.NetComplete.play()
     if "Your branch is behind" in status.stdout:
         return True
     return False
 
 
 def pull_updates():
-    NetStart.play()
+    Sounds.NetStart.play()
     try:
         subprocess.run(["git", "pull"], check=True)
     except subprocess.CalledProcessError:
-        NetError.play()
+        Sounds.NetError.play()
         print(lang['update_error'])
         return
-    NetComplete.play()
+    Sounds.NetComplete.play()
 
 
 class UniversalTimeScale:
@@ -138,7 +68,7 @@ class UniversalTimeScale:
     def set_time_by_ets(self, year, add_day_seconds = False):
         total_seconds = 0
         for current_year in range(0, int(year)):
-            KeypressDelete.play()
+            Sounds.KeypressDelete.play()
             print(total_seconds, end='\r', flush=True)
             if self.is_leap_year(current_year):
                 total_seconds += UniversalTimeScale.SECONDS_IN_LEAP_YEAR
@@ -216,6 +146,13 @@ class Commands:
         print(f'{lang['info_copyrights']}\n')
         print(sys.copyright, duration=5)
 
+    def apps(self):
+        print(lang['apps'])
+        apps_dir = os.listdir('apps')
+        for i in apps_dir:
+            if '__init__.py' in os.listdir(f'apps/{i}'):
+                print(i)
+
     def update(self, *args: list[str]):
         if args:
             if '-check' in args:
@@ -251,43 +188,6 @@ class Commands:
             print_number(year.get_mts_year(), duration=3)
 
 
-class DBProfiler:
-    def __init__(self):
-        self.running = True
-        clear_screen('40')
-        while self.running:
-            user_input = input('? ').split(' ')
-            match user_input:
-                case ['help']:
-                    print('Request example: <key> <password>\n Password isn\'t necessary.')
-                case ['exit']:
-                    self.running = False
-                case ['']:
-                    pass
-                case _:
-                    key = user_input[0]
-                    password = user_input[1] if len(user_input) > 1 else None
-                    NetStart.play()
-                    try:
-                        if password:
-                            response = requests.get('http://127.0.0.1:5000/',
-                                                    {'key': key,
-                                                     'language': settings['language'],
-                                                     'password': password})
-                        else:
-                            response = requests.get('http://127.0.0.1:5000/get_knowledge',
-                                                    {'key': key,
-                                                     'language': settings['language']})
-                    except requests.exceptions.ConnectionError:
-                        NetError.play()
-                        print('CAN NOT FETCH')
-                        continue
-                    NetComplete.play()
-                    print(f'{key}:\n{response.json()["response"]}',
-                          duration=len(response.json()["response"])/70 if response.json()["response"] else 3)
-        clear_screen()
-
-
 class Language:
     def __init__(self):
         self.language = settings['language']
@@ -298,6 +198,7 @@ greet=Hello, NSSA! Glory to the Watermelon!;
 lang_load_success=Language loaded successfully!;
 shutdown=Exiting...;
 unknown_command=Unknown command or wrong arguments.;
+apps=Available apps:;
 ;
 help_no_info=There is no info about this command.;
 help_guide=Type "help <command>" to get help for command.
@@ -326,6 +227,7 @@ greet=Привет, НССА! Слава Арбузу!;
 lang_load_success=Язык успешно загружен!;
 shutdown=Завершение сеанса...;
 unknown_command=Неизвестная команда или неверные аргументы.;
+apps=Доступные приложения:;
 ;
 help_no_info=О данной команде нет информации.;
 help_guide=Используйте "help <command>" чтобы получить помощь по конкретной команде.
@@ -399,6 +301,8 @@ if __name__ == "__main__":
                     client.help(None)
             case ['info']:
                 client.info()
+            case ['apps']:
+                client.apps()
             case ['update', *args]:
                 client.update(*args)
             case ['exit']:
@@ -407,11 +311,22 @@ if __name__ == "__main__":
                 running = False
             case ['year', *args]:
                 client.year(*args)
-            case ['profiler']:
-                DBProfiler()
             case ['']:
                 pass
             case _:
+                try:
+                    if '__init__.py' in os.listdir(f'apps/{user_input[0]}'):
+                        exec(f'from apps import {user_input[0]}\n'
+                             f'{user_input[0]}.main()')
+
+                        continue
+                except ModuleNotFoundError:
+                    pass
+                except AttributeError as err:
+                    Sounds.ErrorCritical.play()
+                    print(f'Error in {user_input[0]}: {err}')  # TODO: Перевести
+                    continue
+
                 print(lang['unknown_command'])
                 print(user_input[0] + ' <-')
     clear_screen('F0')
