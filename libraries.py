@@ -51,7 +51,7 @@ def clear_screen(color='60'):
 
 old_print = print
 
-def print(text: str, sep=' ', end='\n', duration: int | float = 1):
+def print(text: str, sep=' ', end='\n', duration: int | float = 1, quiet: bool = False):
     modifier = settings["speed_modifier"]
     text = str(text)
     text += end
@@ -59,12 +59,14 @@ def print(text: str, sep=' ', end='\n', duration: int | float = 1):
     for i in text:
         if i == '\n':
             if not last_was_nl:
-                Sounds.Newline.play()
+                if not quiet:
+                    Sounds.Newline.play()
             last_was_nl = True
         else:
             last_was_nl = False
         if i != ' ':
-            Sounds.Output.play()
+            if not quiet:
+                Sounds.Output.play()
         old_print(i, end='', flush=True)
         time.sleep(duration * modifier / len(text))
 

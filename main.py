@@ -322,6 +322,8 @@ if __name__ == "__main__":
                         continue
                 except ModuleNotFoundError:
                     pass
+                except FileNotFoundError:
+                    pass
                 except AttributeError as err:
                     Sounds.ErrorCritical.play()
                     print(f'Error in {user_input[0]}: {err}')  # TODO: Перевести

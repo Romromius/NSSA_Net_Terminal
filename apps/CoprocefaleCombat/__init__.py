@@ -1,11 +1,10 @@
 import asyncio
 import time
-
+import threading
 import pygame
 import random
 import libraries
 import requests
-
 
 libraries.resource_path('resources/audio/KeypressDelete.ogg')
 
@@ -17,16 +16,19 @@ FPS = 60
 STATUS = ''
 
 
-async def sync():
-    print('Syncing...')
-    global coins_buff
-    try:
-        result = requests.get('http://127.0.0.1:5000/cc/sync', {'user': 'admin', 'coins': coins_buff})
-        if result.text == 'OK':
-            coins_buff = 0
-    except requests.exceptions.ConnectionError:
-        pass
-    print('Complete!')
+def sync():
+    global running
+    while running:
+        time.sleep(5)
+        global coins_buff
+        try:
+            result = requests.get('http://127.0.0.1:5000/cc/sync', {'user': 'admin', 'coins': coins_buff})
+            if result.text == 'OK':
+                coins_buff = 0
+            libraries.print('Sync complete!', quiet=True)
+        except requests.exceptions.ConnectionError:
+            libraries.print('Can\'t sync. Retrying in 5 seconds...', quiet=True, duration=0.05)
+    print('Syncing stopped.')
 
 
 def auth():
@@ -113,8 +115,11 @@ def main():
 
 
 def game():
-    timer = 0
+    libraries.print('Starting Coprocefale Combat')
+    sync_thread = threading.Thread(target=sync, daemon=True)
+    sync_thread.start()
     global running
+    global screen
     while running:
         screen.fill('#696969')
         for event in pygame.event.get():
@@ -140,12 +145,6 @@ def game():
             #         button.mouse_button = 'UP'
         global delta
         delta = clocks.tick(FPS)
-        timer += delta
-
-        if timer >= 5000:
-            libraries.old_print('TIME!')
-            asyncio.run(sync())
-            timer = 0
 
         button.update()
         screen.blit(button.render(), (x/2 - button.x / 2, y/3 - button.y / 2))
@@ -155,6 +154,8 @@ def game():
         screen.blit(font.render(f'{coins} ({coins_buff})', 1, '#FFFFFF'), (0, 0))
 
         pygame.display.flip()
+    libraries.print('Exiting Coprocefale Combat...')
+    del screen
 
 
 if __name__ == '__main__':
